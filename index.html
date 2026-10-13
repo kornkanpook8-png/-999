@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Chemistry Academy Grade 9 - Lab & Missions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+            user-select: none;
+        }
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+        .roblox-box {
+            border: 4px solid #111111;
+            box-shadow: 6px 6px 0px #000000;
+        }
+        .roblox-btn {
+            border: 3px solid #000;
+            box-shadow: 0px 5px 0px #000;
+            transition: all 0.1s ease;
+        }
+        .roblox-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0px 1px 0px #000;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col overflow-x-hidden">
+
+    <!-- Login & Character Selection Modal -->
+    <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="relative w-full max-w-4xl bg-slate-800 roblox-box rounded-2xl overflow-hidden flex flex-col md:flex-row border-4 border-yellow-400">
+            
+            <!-- Left Side: Dual 3D Avatars Walking (Centered Camera & Text Adjusted) -->
+            <div class="w-full md:w-1/2 h-72 md:h-auto min-h-[360px] bg-sky-500 relative overflow-hidden flex items-center justify-center">
+                <canvas id="avatarCanvas" class="absolute inset-0 z-0"></canvas>
+                
+                <!-- Floating Title (Adjusted to avoid covering avatar faces) -->
+                <div class="absolute top-2 left-3 right-3 z-10 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-center border border-yellow-400/40">
+                    <span class="pixel-font text-[10px] sm:text-xs text-yellow-300 block">ROBLOX CHEM ACADEMY</span>
+                    <p class="text-[11px] text-slate-200 leading-tight" id="ui-login-sub">ห้องปฏิบัติการและอาณาจักรเคมี ม.3</p>
+                </div>
+
+                <div class="absolute bottom-2 right-2 z-10 text-[9px] text-white/80 bg-black/50 px-2 py-0.5 rounded">
+                    <i class="fa-solid fa-gamepad text-yellow-400 mr-1"></i> Avatar Live 3D
+                </div>
+            </div>
+
+            <!-- Right Side: Player Profile Form -->
+            <div class="w-full md:w-1/2 p-6 bg-slate-800 flex flex-col justify-between z-10">
+                <div>
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-700 pb-3">
+                        <h2 class="text-lg font-bold text-yellow-400 flex items-center gap-2" id="ui-create-player">
+                            <i class="fa-solid fa-user-astronaut"></i> สร้างตัวละครของคุณ
+                        </h2>
+                        <span class="bg-yellow-400/20 text-yellow-300 text-xs px-2 py-1 rounded border border-yellow-400/40">Lab v4.1</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1" id="ui-player-name-label">ชื่อผู้เล่น (Player Name):</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="playerNameInput" value="RobloxChemist" 
+                                class="w-full pl-9 pr-3 py-1.5 bg-slate-900 border-2 border-slate-600 rounded-lg focus:border-yellow-400 focus:outline-none text-white font-medium text-xs">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1" id="ui-select-avatar-label">เลือกตัวละครหลัก:</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="btnSelectBoy" onclick="selectGender('boy')" 
+                                class="roblox-btn bg-blue-600 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-2 ring-2 ring-white">
+                                <i class="fa-solid fa-mars"></i> <span id="ui-boy-btn">ชาย (Boy)</span>
+                            </button>
+                            <button type="button" id="btnSelectGirl" onclick="selectGender('girl')" 
+                                class="roblox-btn bg-pink-600 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-venus"></i> <span id="ui-girl-btn">หญิง (Girl)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="w-full roblox-btn bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-sm py-2.5 rounded-xl uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-play text-base"></i> <span id="ui-start-game-btn">เข้าสู่ห้องปฏิบัติการเคมี</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Navigation Bar -->
+    <header class="bg-slate-800 border-b-4 border-yellow-400 px-4 py-3 sticky top-0 z-30 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-yellow-400 text-slate-900 rounded-lg flex items-center justify-center font-black text-xl roblox-box">
+                    <i class="fa-solid fa-flask"></i>
+                </div>
+                <div>
+                    <h1 class="pixel-font text-xs sm:text-sm text-yellow-300">ROBLOX CHEM LAB</h1>
+                    <p class="text-[11px] text-slate-400" id="ui-header-sub">ห้องปฏิบัติการและสมการเคมี ม.3</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 bg-slate-900 px-3 py-1 rounded-xl border border-slate-700">
+                <div class="flex items-center gap-2">
+                    <div id="userAvatarBadge" class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-xs text-white font-bold border border-white">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <span id="displayPlayerName" class="text-xs font-bold text-yellow-300 block">RobloxChemist</span>
+                        <span id="displayItemCount" class="text-[10px] text-amber-300 block">ไอเทมแต่งตัว: 0 ชิ้น</span>
+                    </div>
+                </div>
+                <div class="h-6 w-px bg-slate-700"></div>
+                <div class="text-right">
+                    <span class="text-[10px] text-slate-400 block" id="ui-score-label">คะแนน EXP</span>
+                    <span id="playerScore" class="text-xs font-black text-emerald-400">0 EXP</span>
+                </div>
+            </div>
+
+            <!-- Controls: Music, Language, Home -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleMusic()" id="btnMusicToggle" class="bg-slate-700 hover:bg-slate-600 text-yellow-300 p-2 rounded-lg text-xs font-bold roblox-btn border border-yellow-400/50 flex items-center gap-1.5">
+                    <i class="fa-solid fa-music text-sm" id="musicIcon"></i>
+                    <span id="musicText" class="hidden sm:inline">เปิดเพลง</span>
+                </button>
+
+                <div class="relative bg-slate-900 border border-slate-700 rounded-lg p-1 flex items-center gap-1 text-xs font-bold">
+                    <button onclick="setLanguage('th')" id="langTh" class="px-2 py-0.5 rounded bg-yellow-400 text-slate-950">TH</button>
+                    <button onclick="setLanguage('en')" id="langEn" class="px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">EN</button>
+                    <button onclick="setLanguage('zh')" id="langZh" class="px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">ZH</button>
+                </div>
+
+                <button onclick="returnToHome()" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-bold roblox-btn flex items-center gap-1.5">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="hidden sm:inline" id="ui-home-btn">หน้าแรก</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto pt-2">
+            <button onclick="switchTab('lab')" id="tabBtnLab" class="tab-btn active bg-yellow-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 roblox-btn">
+                <i class="fa-solid fa-vials"></i> <span id="ui-tab-lab">1. ห้องปฏิบัติการ (10 สมการ 3D)</span>
+            </button>
+            <button onclick="switchTab('mission')" id="tabBtnMission" class="tab-btn bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 roblox-btn">
+                <i class="fa-solid fa-gamepad text-yellow-400"></i> <span id="ui-tab-mission">2. ภารกิจดุลสมการ & สะสมไอเทม</span>
+            </button>
+            <button onclick="switchTab('learning')" id="tabBtnLearning" class="tab-btn bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 roblox-btn">
+                <i class="fa-solid fa-book-open text-sky-400"></i> <span id="ui-tab-learn">3. คลังความรู้ ม.3</span>
+            </button>
+            <button onclick="switchTab('wardrobe')" id="tabBtnWardrobe" class="tab-btn bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 roblox-btn">
+                <i class="fa-solid fa-shirt text-pink-400"></i> <span id="ui-tab-wardrobe">4. ตู้เสื้อผ้าไอเทม</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- TAB 1: LAB (10 3D Interactive Equations & Molecules) -->
+        <section id="labTab" class="space-y-6">
+            <div class="bg-gradient-to-r from-blue-900/90 to-indigo-900/90 border-2 border-blue-500 rounded-2xl p-4 shadow-lg">
+                <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2 mb-1" id="ui-lab-banner-title">
+                    <i class="fa-solid fa-microscope text-yellow-400"></i> ห้องปฏิบัติการเรียนรู้: 10 สมการเคมีและแบบจำลองโมเลกุล 3 มิติ
+                </h2>
+                <p class="text-xs text-slate-300" id="ui-lab-banner-sub">คลิกดูโมเลกุล 3D หมุนได้และศึกษา 10 สมการเคมีพื้นฐานระดับชั้น ม.3 ได้อย่างเต็มอิ่ม</p>
+            </div>
+
+            <!-- 10 Lab Equation Cards Grid -->
+            <div id="labEquationsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- TAB 2: MISSION & BALANCING GAME (For Items & Avatar Gear) -->
+        <section id="missionTab" class="hidden space-y-6">
+            <div class="bg-gradient-to-r from-purple-900/90 to-pink-900/90 border-2 border-purple-500 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-xl flex items-center justify-center text-2xl border border-purple-400">
+                        <i class="fa-solid fa-trophy text-yellow-300"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white">
+                            ภารกิจดุลสมการลุ้นรับไอเทมแต่งตัวข้อที่ <span id="currentMissionNum" class="text-yellow-400">1</span>/5
+                        </h2>
+                        <p class="text-xs text-slate-300" id="missionDifficulty">ระดับ: สะสมไอเทมแฟชั่น Roblox</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-900/90 px-3 py-1.5 rounded-xl border border-amber-500 flex items-center gap-2 text-amber-300 font-bold text-xs">
+                        <i class="fa-solid fa-stopwatch animate-pulse"></i>
+                        <span>เวลา: <span id="timerDisplay" class="text-white font-mono text-sm">03:00</span></span>
+                    </div>
+                    <button onclick="resetMission()" class="roblox-btn bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded-lg text-xs font-bold">
+                        <i class="fa-solid fa-rotate-left"></i> รีเซ็ต
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mission Workspace -->
+            <div class="bg-slate-800 roblox-box rounded-2xl p-6 border-2 border-slate-700">
+                <h3 class="text-center text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider mb-6">
+                    <i class="fa-solid fa-sliders text-yellow-400 mr-2"></i>ปรับสัมประสิทธิ์เพื่อพิชิตไอเทมแต่งตัว
+                </h3>
+
+                <div id="missionEquationBuilder" class="flex flex-wrap items-center justify-center gap-4 min-h-[120px] py-4 bg-slate-900/90 rounded-xl border border-slate-700 px-4">
+                    <!-- Dynamic Coefficients -->
+                </div>
+
+                <div class="mt-6 flex items-center justify-center">
+                    <button onclick="checkMissionAnswer()" class="roblox-btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-gift text-lg"></i> ตรวจคำตอบ & รับไอเทมแต่งตัวเข้าตู้เสื้อผ้า
+                    </button>
+                </div>
+            </div>
+
+            <!-- Atom Table for Mission -->
+            <div class="bg-slate-800 roblox-box rounded-2xl p-5 border-2 border-slate-700">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3 mb-4">
+                    <h4 class="font-bold text-yellow-400 flex items-center gap-2 text-xs">
+                        <i class="fa-solid fa-scale-balanced"></i> ตารางตรวจสอบความสมดุลอะตอม
+                    </h4>
+                    <span id="missionStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40">
+                        ยังไม่สมดุล
+                    </span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 text-yellow-300 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-2.5">ธาตุ</th>
+                                <th class="p-2.5 text-center">สารตั้งต้น</th>
+                                <th class="p-2.5 text-center">สถานะ</th>
+                                <th class="p-2.5 text-center">ผลิตภัณฑ์</th>
+                            </tr>
+                        </thead>
+                        <tbody id="missionAtomTableBody" class="divide-y divide-slate-700/50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: LEARNING HUB -->
+        <section id="learningTab" class="hidden space-y-6">
+            <div class="bg-slate-800 roblox-box rounded-2xl p-6 border-2 border-slate-700 space-y-4 text-xs text-slate-300">
+                <h3 class="text-sm font-bold text-sky-400 border-b border-slate-700 pb-2">
+                    <i class="fa-solid fa-book mr-1"></i> ศูนย์การเรียนรู้วิทยาศาสตร์กายภาพ ม.3 (กฎทรงมวล)
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <h4 class="font-bold text-yellow-300 mb-2">📌 หลักการสำคัญ:</h4>
+                        <p class="mb-2">ในปฏิกิริยาเคมี อะตอมไม่สูญหายหรือเกิดขึ้นใหม่ แต่มวลรวมก่อนและหลังจะเท่ากันเสมอตามกฎของลาวัวซิเยร์</p>
+                        <p>ห้ามเปลี่ยนตัวเลขห้อยท้าย (Subscript) แต่ให้เติมเฉพาะตัวเลขสัมประสิทธิ์ข้างหน้าโมเลกุลเท่านั้น</p>
+                    </div>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <h4 class="font-bold text-yellow-300 mb-2">💡 เทคนิคการดุลสมการ:</h4>
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>เริ่มจากดุลธาตุโลหะก่อน</li>
+                            <li>ดุลธาตุอโลหะ (C, N, S, Cl)</li>
+                            <li>ดุลไฮโดรเจน (H) และออกซิเจน (O) เป็นลำดับสุดท้าย</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: WARDROBE & COLLECTED ITEMS -->
+        <section id="wardrobeTab" class="hidden space-y-6">
+            <div class="bg-slate-800 roblox-box rounded-2xl p-6 border-2 border-slate-700">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-yellow-400 flex items-center gap-2">
+                            <i class="fa-solid fa-shirt text-pink-400"></i> ตู้เสื้อผ้าและไอเทมแต่งตัวตัวละคร (Avatar Wardrobe)
+                        </h2>
+                        <p class="text-xs text-slate-400">ไอเทมแฟชั่นที่ได้รับจากการผ่านภารกิจดุลสมการเคมี</p>
+                    </div>
+                    <span id="wardrobeCountBadge" class="text-xs bg-pink-500/20 text-pink-300 px-3 py-1 rounded-full border border-pink-500/40 font-bold">
+                        ครอบครอง: 0 / 5 ชิ้น
+                    </span>
+                </div>
+
+                <div id="wardrobeGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 border-t border-slate-700 py-4 text-center text-xs text-slate-400">
+        <p>Roblox Chemistry Lab & Game &copy; 2026 | สื่อการเรียนรู้วิทยาศาสตร์ ม.3</p>
+    </footer>
+
+    <!-- Game Scripts -->
+    <script>
+        // State
+        let playerName = "RobloxChemist";
+        let avatarGender = "boy";
+        let currentLang = "th";
+        let score = 0;
+        let currentMission = 0;
+        let timerInterval = null;
+        let timeLeft = 180;
+        let isMusicPlaying = false;
+        let audioCtx = null;
+        let collectedGear = [];
+
+        // 10 Chemical Equations for Lab Hub
+        const labEquations = [
+            { id: 1, nameTh: "การสังเคราะห์น้ำ", nameEn: "Water Synthesis", formula: "2H₂ + O₂ ➔ 2H₂O", desc: "รวมไฮโดรเจนและออกซิเจนเกิดเป็นโมเลกุลน้ำบริสุทธิ์", atoms: [{color: 0x3b82f6, size: 0.4}, {color: 0xef4444, size: 0.6}] },
+            { id: 2, nameTh: "การสังเคราะห์แอมโมเนีย", nameEn: "Ammonia Synthesis", formula: "N₂ + 3H₂ ➔ 2NH₃", desc: "ปฏิกิริยาผลิตปุ๋ยและสารเคมีอุตสาหกรรม", atoms: [{color: 0xa855f7, size: 0.7}, {color: 0x3b82f6, size: 0.4}] },
+            { id: 3, nameTh: "การเผาไหม้มีเทน", nameEn: "Methane Combustion", formula: "CH₄ + 2O₂ ➔ CO₂ + 2H₂O", desc: "ปฏิกิริยาให้ความร้อนจากแก๊สธรรมชาติ", atoms: [{color: 0x10b981, size: 0.6}, {color: 0xef4444, size: 0.5}] },
+            { id: 4, nameTh: "ปฏิกิริยาสนิมเหล็ก", nameEn: "Iron Rusting", formula: "4Fe + 3O₂ ➔ 2Fe₂O₃", desc: "การเกิดออกซิเดชันของโลหะเหล็กกล้า", atoms: [{color: 0xf59e0b, size: 0.65}, {color: 0xef4444, size: 0.5}] },
+            { id: 5, nameTh: "การสลายตัวเปอร์ออกไซด์", nameEn: "Peroxide Decomposition", formula: "2H₂O₂ ➔ 2H₂O + O₂", desc: "การแตกตัวให้แก๊สออกซิเจนฟองฟู่", atoms: [{color: 0x3b82f6, size: 0.4}, {color: 0xef4444, size: 0.5}] },
+            { id: 6, nameTh: "การเผาไหม้โพรเพน", nameEn: "Propane Combustion", formula: "C₃H₈ + 5O₂ ➔ 3CO₂ + 4H₂O", desc: "เชื้อเพลิงแก๊สปิโตรเหลวหุงต้ม", atoms: [{color: 0x10b981, size: 0.6}, {color: 0xef4444, size: 0.5}] },
+            { id: 7, nameTh: "การเกิดเกลือแกง", nameEn: "Sodium Chloride Formation", formula: "2Na + Cl₂ ➔ 2NaCl", desc: "โลหะโซเดียมทำปฏิกิริยากับคลอรีน", atoms: [{color: 0x6366f1, size: 0.6}, {color: 0x14b8a6, size: 0.55}] },
+            { id: 8, nameTh: "ปฏิกิริยาโซเดียมกับน้ำ", nameEn: "Sodium & Water", formula: "2Na + 2H₂O ➔ 2NaOH + H₂", desc: "เกิดสารละลายเบสและแก๊สไฮโดรเจนไวไฟ", atoms: [{color: 0x6366f1, size: 0.6}, {color: 0xef4444, size: 0.5}] },
+            { id: 9, nameTh: "การเผาไหม้คาร์บอนมอนอกไซด์", nameEn: "Carbon Monoxide Burn", formula: "2CO + O₂ ➔ 2CO₂", desc: "การกำจัดแก๊สพิษในไอเสียรถยนต์", atoms: [{color: 0x10b981, size: 0.55}, {color: 0xef4444, size: 0.5}] },
+            { id: 10, nameTh: "การสังเคราะห์ด้วยแสง", nameEn: "Photosynthesis", formula: "6CO₂ + 6H₂O ➔ C₆H₁₂O₆ + 6O₂", desc: "พืชสร้างอาหารและปล่อยออกซิเจน", atoms: [{color: 0x10b981, size: 0.5}, {color: 0x3b82f6, size: 0.4}] }
+        ];
+
+        // 5 Balancing Missions for Avatar Gear Items
+        const missions = [
+            { id: 1, title: "การสังเคราะห์น้ำ", reactants: [{f:"H2",n:"H2"}, {f:"O2",n:"O2"}], products: [{f:"H2O",n:"H2O"}], coeffs: [2, 1, 2], elems: ['H', 'O'], gear: {name: "หมวกนักวิทยาศาสตร์พิกเซล", icon: "fa-hat-wizard", color: "text-blue-400"} },
+            { id: 2, title: "การสังเคราะห์แอมโมเนีย", reactants: [{f:"N2",n:"N2"}, {f:"H2",n:"H2"}], products: [{f:"NH3",n:"NH3"}], coeffs: [1, 3, 2], elems: ['N', 'H'], gear: {name: "แว่นตานิรภัยเลเซอร์", icon: "fa-glasses", color: "text-emerald-400"} },
+            { id: 3, title: "การเผาไหม้มีเทน", reactants: [{f:"CH4",n:"CH4"}, {f:"O2",n:"O2"}], products: [{f:"CO2",n:"CO2"}, {f:"H2O",n:"H2O"}], coeffs: [1, 2, 1, 2], elems: ['C', 'H', 'O'], gear: {name: "เสื้อกาวน์แล็บทองคำ", icon: "fa-vest", color: "text-amber-400"} },
+            { id: 4, title: "ปฏิกิริยาสนิมเหล็ก", reactants: [{f:"Fe",n:"Fe"}, {f:"O2",n:"O2"}], products: [{f:"Fe2O3",n:"Fe2O3"}], coeffs: [4, 3, 2], elems: ['Fe', 'O'], gear: {name: "ปีกคริสตัลอะตอม", icon: "fa-feather", color: "text-pink-400"} },
+            { id: 5, title: "การสลายตัวเปอร์ออกไซด์", reactants: [{f:"H2O2",n:"H2O2"}], products: [{f:"H2O",n:"H2O"}, {f:"O2",n:"O2"}], coeffs: [2, 2, 1], elems: ['H', 'O'], gear: {name: "มงกุฎปรมาจารย์เคมี", icon: "fa-crown", color: "text-yellow-400"} }
+        ];
+
+        let missionCoeffs = [];
+        let labRenderers = [];
+
+        // Three.js Dual Avatars on Home Modal (Optimized Camera & Vertical Centering)
+        let homeScene, homeCamera, homeRenderer, boyMesh, girlMesh;
+        function initHomeAvatars() {
+            const canvas = document.getElementById('avatarCanvas');
+            homeScene = new THREE.Scene();
+            homeCamera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            homeRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            homeRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+            homeScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+            const dir = new THREE.DirectionalLight(0xffffff, 0.7);
+            dir.position.set(5, 10, 7);
+            homeScene.add(dir);
+
+            // Centered Avatar Placement
+            boyMesh = createAvatarGroup(0x2563eb, 0xfde047);
+            boyMesh.position.set(-0.65, -0.2, 0);
+            homeScene.add(boyMesh);
+
+            girlMesh = createAvatarGroup(0xdb2777, 0xfde047);
+            girlMesh.position.set(0.65, -0.2, 0);
+            homeScene.add(girlMesh);
+
+            // Camera Target Centered Perfectly on Avatars
+            homeCamera.position.set(0, 0.35, 4.2);
+            homeCamera.lookAt(0, 0.2, 0);
+
+            animateHomeAvatars();
+        }
+
+        function createAvatarGroup(shirtColor, skinColor) {
+            const group = new THREE.Group();
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.65, 0.65), new THREE.MeshLambertMaterial({ color: skinColor }));
+            head.position.y = 1.1;
+            group.add(head);
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.45), new THREE.MeshLambertMaterial({ color: shirtColor }));
+            torso.position.y = 0.3;
+            group.add(torso);
+
+            const armGeo = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+            const armMat = new THREE.MeshLambertMaterial({ color: skinColor });
+            const lArm = new THREE.Mesh(armGeo, armMat);
+            lArm.name = "lArm"; lArm.position.set(-0.62, 0.3, 0); group.add(lArm);
+            const rArm = new THREE.Mesh(armGeo, armMat);
+            rArm.name = "rArm"; rArm.position.set(0.62, 0.3, 0); group.add(rArm);
+
+            const legGeo = new THREE.BoxGeometry(0.35, 0.8, 0.35);
+            const legMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+            const lLeg = new THREE.Mesh(legGeo, legMat);
+            lLeg.name = "lLeg"; lLeg.position.set(-0.22, -0.55, 0); group.add(lLeg);
+            const rLeg = new THREE.Mesh(legGeo, legMat);
+            rLeg.name = "rLeg"; rLeg.position.set(0.22, -0.55, 0); group.add(rLeg);
+
+            return group;
+        }
+
+        let cycle = 0;
+        function animateHomeAvatars() {
+            requestAnimationFrame(animateHomeAvatars);
+            cycle += 0.08;
+            if (boyMesh && girlMesh) {
+                boyMesh.getObjectByName("lArm").rotation.x = Math.sin(cycle) * 0.5;
+                boyMesh.getObjectByName("rArm").rotation.x = -Math.sin(cycle) * 0.5;
+                boyMesh.position.y = -0.2 + Math.abs(Math.sin(cycle * 2)) * 0.06;
+
+                girlMesh.getObjectByName("lArm").rotation.x = -Math.sin(cycle) * 0.5;
+                girlMesh.getObjectByName("rArm").rotation.x = Math.sin(cycle) * 0.5;
+                girlMesh.position.y = -0.2 + Math.abs(Math.cos(cycle * 2)) * 0.06;
+            }
+            homeRenderer.render(homeScene, homeCamera);
+        }
+
+        // Initialize Lab 10 Equations
+        function renderLabEquations() {
+            const grid = document.getElementById('labEquationsGrid');
+            grid.innerHTML = '';
+            labRenderers = [];
+
+            labEquations.forEach((eq, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 roblox-box rounded-2xl p-4 border-2 border-slate-700 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+                            <span class="text-xs font-bold text-yellow-400">สมการที่ ${eq.id}</span>
+                            <span class="pixel-font text-xs text-sky-300">${eq.formula}</span>
+                        </div>
+                        <h4 class="font-bold text-white text-sm mb-1">${eq.nameTh}</h4>
+                        <p class="text-xs text-slate-400 mb-3">${eq.desc}</p>
+                    </div>
+                    <div class="w-full h-36 bg-slate-900 rounded-xl relative overflow-hidden border border-slate-700">
+                        <canvas id="labCanvas_${idx}" class="w-full h-full block"></canvas>
+                        <div class="absolute bottom-1 right-2 text-[9px] text-slate-400 bg-black/50 px-2 py-0.5 rounded">
+                            <i class="fa-solid fa-cube mr-1 text-sky-400"></i> โมเลกุล 3D หมุนได้
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                setTimeout(() => initLabMoleculeCanvas(`labCanvas_${idx}`, eq.atoms), 50);
+            });
+        }
+
+        function initLabMoleculeCanvas(canvasId, atomConfig) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const dir = new THREE.DirectionalLight(0xffffff, 0.5);
+            dir.position.set(2, 5, 3);
+            scene.add(dir);
+
+            const group = new THREE.Group();
+            const centralMat = new THREE.MeshLambertMaterial({ color: atomConfig[0].color });
+            const centralMesh = new THREE.Mesh(new THREE.SphereGeometry(atomConfig[0].size, 16, 16), centralMat);
+            group.add(centralMesh);
+
+            for (let i = 0; i < 3; i++) {
+                const angle = (i * Math.PI * 2) / 3;
+                const subMat = new THREE.MeshLambertMaterial({ color: atomConfig[1].color });
+                const subMesh = new THREE.Mesh(new THREE.SphereGeometry(atomConfig[1].size, 16, 16), subMat);
+                subMesh.position.set(Math.cos(angle) * 1.5, Math.sin(angle) * 1.5, 0);
+                group.add(subMesh);
+            }
+
+            scene.add(group);
+            camera.position.set(0, 0, 4.5);
+
+            function animateMol() {
+                requestAnimationFrame(animateMol);
+                group.rotation.x += 0.01;
+                group.rotation.y += 0.015;
+                renderer.render(scene, camera);
+            }
+            animateMol();
+            labRenderers.push({ renderer, camera, scene });
+        }
+
+        // Mission Engine
+        function loadMission(index) {
+            currentMission = index;
+            const m = missions[index];
+            document.getElementById('currentMissionNum').innerText = m.id;
+            document.getElementById('missionDifficulty').innerText = 'ภารกิจ: ดุลสมการ ' + m.title + ' เพื่อรับไอเทมแฟชั่น';
+
+            clearInterval(timerInterval);
+            timeLeft = 180;
+            updateMissionTimer();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateMissionTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("⏰ หมดเวลา! รีเซ็ตข้อภารกิจ");
+                    loadMission(currentMission);
+                }
+            }, 1000);
+
+            const total = m.reactants.length + m.products.length;
+            missionCoeffs = new Array(total).fill(1);
+            renderMissionBuilder();
+            updateMissionAtomTable();
+        }
+
+        function updateMissionTimer() {
+            const min = Math.floor(timeLeft / 60);
+            const sec = timeLeft % 60;
+            document.getElementById('timerDisplay').innerText = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+        }
+
+        function renderMissionBuilder() {
+            const m = missions[currentMission];
+            const container = document.getElementById('missionEquationBuilder');
+            container.innerHTML = '';
+            let subIdx = 0;
+
+            m.reactants.forEach((r, idx) => {
+                if (idx > 0) {
+                    const plus = document.createElement('span');
+                    plus.className = "text-xl font-bold text-yellow-400 mx-1"; plus.innerText = "+";
+                    container.appendChild(plus);
+                }
+                container.appendChild(createMissionCoeffBox(subIdx++, r.f));
+            });
+
+            const arrow = document.createElement('div');
+            arrow.className = "mx-2 text-yellow-400 text-xl font-bold";
+            arrow.innerHTML = '<i class="fa-solid fa-arrow-right-long"></i>';
+            container.appendChild(arrow);
+
+            m.products.forEach((p, idx) => {
+                if (idx > 0) {
+                    const plus = document.createElement('span');
+                    plus.className = "text-xl font-bold text-yellow-400 mx-1"; plus.innerText = "+";
+                    container.appendChild(plus);
+                }
+                container.appendChild(createMissionCoeffBox(subIdx++, p.f));
+            });
+        }
+
+        function createMissionCoeffBox(index, formula) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex items-center gap-1.5 bg-slate-800 p-2 rounded-xl border border-slate-700 roblox-box";
+
+            const select = document.createElement('select');
+            select.className = "bg-slate-900 text-yellow-300 font-black text-sm px-2 py-1 rounded border border-slate-600 focus:outline-none";
+            for (let i = 1; i <= 6; i++) {
+                const opt = document.createElement('option');
+                opt.value = i; opt.text = i;
+                if (missionCoeffs[index] === i) opt.selected = true;
+                select.appendChild(opt);
+            }
+            select.onchange = (e) => {
+                missionCoeffs[index] = parseInt(e.target.value);
+                updateMissionAtomTable();
+            };
+            wrapper.appendChild(select);
+
+            const span = document.createElement('span');
+            span.className = "pixel-font text-xs text-white";
+            span.innerHTML = formula.replace(/(\d+)/g, '<sub>$1</sub>');
+            wrapper.appendChild(span);
+
+            return wrapper;
+        }
+
+        function parseForm(formula) {
+            let counts = {};
+            let regex = /([A-Z][a-z]*)(\d*)/g;
+            let match;
+            while ((match = regex.exec(formula)) !== null) {
+                let el = match[1];
+                let count = match[2] ? parseInt(match[2]) : 1;
+                counts[el] = (counts[el] || 0) + count;
+            }
+            return counts;
+        }
+
+        function updateMissionAtomTable() {
+            const m = missions[currentMission];
+            let subIdx = 0;
+            let rCounts = {}, pCounts = {};
+
+            m.reactants.forEach(r => {
+                let c = missionCoeffs[subIdx++];
+                let parsed = parseForm(r.f);
+                for (let el in parsed) rCounts[el] = (rCounts[el] || 0) + parsed[el] * c;
+            });
+
+            m.products.forEach(p => {
+                let c = missionCoeffs[subIdx++];
+                let parsed = parseForm(p.f);
+                for (let el in parsed) pCounts[el] = (pCounts[el] || 0) + parsed[el] * c;
+            });
+
+            const tbody = document.getElementById('missionAtomTableBody');
+            tbody.innerHTML = '';
+            let allEq = true;
+
+            m.elems.forEach(el => {
+                let rVal = rCounts[el] || 0;
+                let pVal = pCounts[el] || 0;
+                let isEq = rVal === pVal && rVal > 0;
+                if (!isEq) allEq = false;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-yellow-300">${el}</td>
+                    <td class="p-2.5 text-center font-bold text-white">${rVal}</td>
+                    <td class="p-2.5 text-center">${isEq ? '<span class="text-emerald-400 font-bold">✓ สมดุล</span>' : '<span class="text-rose-400 font-bold">✗ ยังไม่เท่ากัน</span>'}</td>
+                    <td class="p-2.5 text-center font-bold text-white">${pVal}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const badge = document.getElementById('missionStatusBadge');
+            if (allEq) {
+                badge.className = "text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40";
+                badge.innerHTML = "สมดุลสมบูรณ์!";
+            } else {
+                badge.className = "text-xs px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40";
+                badge.innerHTML = "ยังไม่สมดุล";
+            }
+        }
+
+        function checkMissionAnswer() {
+            const m = missions[currentMission];
+            let correct = true;
+            for (let i = 0; i < m.coeffs.length; i++) {
+                if (missionCoeffs[i] !== m.coeffs[i]) { correct = false; break; }
+            }
+
+            if (correct) {
+                clearInterval(timerInterval);
+                score += 30;
+                document.getElementById('playerScore').innerText = score + " EXP";
+
+                if (!collectedGear.some(g => g.name === m.gear.name)) {
+                    collectedGear.push(m.gear);
+                }
+
+                document.getElementById('displayItemCount').innerText = `ไอเทมแต่งตัว: ${collectedGear.length} ชิ้น`;
+                alert(`🎉 ยอดเยี่ยม! ผ่านภารกิจ ${m.title} ได้รับไอเทมแฟชั่น Roblox: [${m.gear.name}] เข้าตู้เสื้อผ้าแล้ว!`);
+
+                if (currentMission < missions.length - 1) {
+                    loadMission(currentMission + 1);
+                } else {
+                    alert("🏆 ยินดีด้วย! คุณพิชิตครบทุกภารกิจและสะสมไอเทมแต่งตัวครบทั้งหมดแล้ว!");
+                    switchTab('wardrobe');
+                }
+            } else {
+                alert("❌ สัมประสิทธิ์ยังไม่ถูกต้องตามกฎทรงมวล ลองตรวจสอบใหม่อีกครั้ง!");
+            }
+        }
+
+        function resetMission() {
+            loadMission(currentMission);
+        }
+
+        function renderWardrobe() {
+            const grid = document.getElementById('wardrobeGrid');
+            grid.innerHTML = '';
+            document.getElementById('wardrobeCountBadge').innerText = `ครอบครอง: ${collectedGear.length} / 5 ชิ้น`;
+
+            missions.forEach(m => {
+                const owned = collectedGear.some(g => g.name === m.gear.name);
+                const card = document.createElement('div');
+                card.className = owned ? 
+                    "bg-slate-900 p-4 rounded-xl border-2 border-pink-500 flex flex-col items-center text-center shadow-lg" : 
+                    "bg-slate-900/40 p-4 rounded-xl border border-slate-700 flex flex-col items-center text-center opacity-40 grayscale";
+                card.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-2xl ${m.gear.color} mb-2 border border-slate-700">
+                        <i class="fa-solid ${m.gear.icon}"></i>
+                    </div>
+                    <span class="text-xs font-bold text-white mb-1">${m.gear.name}</span>
+                    <span class="text-[10px] ${owned ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${owned ? '✓ สวมใส่แล้ว' : '🔒 ล็อกอยู่'}</span>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            ['lab', 'mission', 'learning', 'wardrobe'].forEach(t => {
+                document.getElementById(t + 'Tab').classList.add('hidden');
+                document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1)).className = "tab-btn bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 roblox-btn";
+            });
+            document.getElementById(tab + 'Tab').classList.remove('hidden');
+            document.getElementById('tabBtn' + tab.charAt(0).toUpperCase() + tab.slice(1)).className = "tab-btn active bg-yellow-400 text-slate-950 px-3 py-1.5 rounded-lg font-bold text-xs flex items-center gap-1.5 roblox-btn";
+
+            if (tab === 'wardrobe') renderWardrobe();
+        }
+
+        function selectGender(g) {
+            avatarGender = g;
+            if (g === 'boy') {
+                document.getElementById('btnSelectBoy').className = "roblox-btn bg-blue-600 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-2 ring-2 ring-white";
+                document.getElementById('btnSelectGirl').className = "roblox-btn bg-pink-600 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-2";
+            } else {
+                document.getElementById('btnSelectGirl').className = "roblox-btn bg-pink-600 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-2 ring-2 ring-white";
+                document.getElementById('btnSelectBoy').className = "roblox-btn bg-blue-600 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-2";
+            }
+        }
+
+        function startGame() {
+            const name = document.getElementById('playerNameInput').value.trim();
+            if (name) playerName = name;
+            document.getElementById('displayPlayerName').innerText = playerName;
+
+            const badge = document.getElementById('userAvatarBadge');
+            badge.className = avatarGender === 'boy' ? "w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs text-white font-bold border border-white" : "w-7 h-7 rounded-full bg-pink-600 flex items-center justify-center text-xs text-white font-bold border border-white";
+
+            document.getElementById('loginModal').style.display = 'none';
+            renderLabEquations();
+            loadMission(0);
+        }
+
+        function returnToHome() {
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+
+        // Music Synth Toggle
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                stopMusic();
+            } else {
+                startMusic();
+            }
+        }
+
+        function startMusic() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            isMusicPlaying = true;
+            document.getElementById('musicIcon').className = "fa-solid fa-volume-high text-sm text-emerald-400 animate-bounce";
+            document.getElementById('musicText').innerText = "ปิดเพลง";
+
+            const notes = [261.63, 329.63, 392.00, 523.25, 440.00];
+            let idx = 0;
+            window.synthTimer = setInterval(() => {
+                if (!isMusicPlaying) return;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(notes[idx % notes.length], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                idx++;
+            }, 250);
+        }
+
+        function stopMusic() {
+            isMusicPlaying = false;
+            if (window.synthTimer) clearInterval(window.synthTimer);
+            document.getElementById('musicIcon').className = "fa-solid fa-volume-xmark text-sm text-rose-400";
+            document.getElementById('musicText').innerText = "เปิดเพลง";
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            ['Th', 'En', 'Zh'].forEach(l => {
+                const b = document.getElementById('lang' + l);
+                b.className = l.toLowerCase() === lang ? "px-2 py-0.5 rounded bg-yellow-400 text-slate-950 font-bold" : "px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300 font-bold";
+            });
+            renderLabEquations();
+        }
+
+        window.onload = () => {
+            initHomeAvatars();
+            renderLabEquations();
+            loadMission(0);
+        };
+
+        window.onresize = () => {
+            const canvas = document.getElementById('avatarCanvas');
+            if (canvas && homeRenderer && homeCamera) {
+                homeCamera.aspect = canvas.clientWidth / canvas.clientHeight;
+                homeCamera.updateProjectionMatrix();
+                homeRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            }
+        };
+    </script>
+</body>
+</html>
